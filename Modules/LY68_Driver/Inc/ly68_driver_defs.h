@@ -23,7 +23,8 @@ enum
   LY68_CMD_WRITE = 0x02U,
   LY68_TIMEOUT_VALUE = 0x64U,
   LY68_LAST_ADDRESS = 0x7FFFFFU,
-  LY68_MF_ID = 0xdU
+  LY68_MF_ID = 0xdU,
+  LY68_PAGES_AMOUNT = 0x2000U
 };
 
 typedef struct {
