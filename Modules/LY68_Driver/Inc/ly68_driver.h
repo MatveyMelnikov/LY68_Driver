@@ -22,11 +22,6 @@ ly68_driver_status ly68_driver_write(
   const uint8_t *const data,
   const uint16_t data_size
 );
-ly68_driver_status ly68_driver_write(
-  const ly68_address address,
-  const uint8_t *const data,
-  const uint16_t data_size
-);
 ly68_driver_status ly68_driver_start_intermittent_write(
   const ly68_address address
 );

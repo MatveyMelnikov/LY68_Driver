@@ -43,6 +43,8 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+UART_HandleTypeDef huart1;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -51,6 +53,7 @@ SPI_HandleTypeDef hspi1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 ly68_driver_status ly68_transmit(
   const uint8_t *const data,
@@ -99,19 +102,11 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  // HAL_SPI_Transmit
-  // HAL_SPI_Receive()
-
-  // HAL_GPIO_WritePin();
-
-  // ly68_address test = {
-  //   .full = 773
-  // };
-
-  // if (test.bytes[0] == 0)
-  //   __asm("nop");
+  ly68_id id = { 0 };
+  ly68_driver_status status = ly68_driver_reset();
 
   ly68_driver_init(
     (ly68_driver_handler) {
@@ -121,135 +116,10 @@ int main(void)
     }
   );
 
-  ly68_id id = { 0 };
-  ly68_driver_status status = ly68_driver_reset();
   status |= ly68_driver_read_id(&id);
 
   if (id.mf_id != LY68_MF_ID)
     Error_Handler();
-
-  // uint8_t data[] = { 0xaa, 0xcc, 0xdd, 0xbb };
-  // uint8_t received_data[4] = { 0 };
-  // ly68_address addr = (ly68_address) {
-  //   .full = 773U
-  // };
-  // status |= ly68_driver_write(addr, data, sizeof(data));
-  // // status |= ly68_driver_read(addr, received_data, sizeof(received_data));
-  // status |= ly68_driver_fast_read(addr, received_data, sizeof(received_data));
-
-  // status |= ly68_driver_write(
-  //   (ly68_address) { .full = 0U },
-  //   &data[0],
-  //   sizeof(uint8_t)
-  // );
-  // status |= ly68_driver_write(
-  //   (ly68_address) { .full = 1U },
-  //   &data[1],
-  //   sizeof(uint8_t)
-  // );
-  // status |= ly68_driver_write(
-  //   (ly68_address) { .full = 2U },
-  //   &data[2],
-  //   sizeof(uint8_t)
-  // );
-  // status |= ly68_driver_write(
-  //   (ly68_address) { .full = 3U },
-  //   &data[3],
-  //   sizeof(uint8_t)
-  // );
-
-  // status |= ly68_driver_read(
-  //   (ly68_address) { .full = 0U },
-  //   &received_data[0],
-  //   sizeof(uint8_t)
-  // );
-  // status |= ly68_driver_read(
-  //   (ly68_address) { .full = 1U },
-  //   &received_data[1],
-  //   sizeof(uint8_t)
-  // );
-  // status |= ly68_driver_read(
-  //   (ly68_address) { .full = 2U },
-  //   &received_data[2],
-  //   sizeof(uint8_t)
-  // );
-  // status |= ly68_driver_read(
-  //   (ly68_address) { .full = 3U },
-  //   &received_data[3],
-  //   sizeof(uint8_t)
-  // );
-
-  uint8_t m_data[1024] = { 0 };
-  uint8_t m_received_data[1024] = { 0 };
-  *((uint16_t*)&m_data[0]) = 0x103;
-  *((uint16_t*)&m_data[100]) = 0x103;
-  *((uint16_t*)&m_data[253]) = 0x103;
-  *((uint16_t*)&m_data[525]) = 0x103;
-  *((uint16_t*)&m_data[1022]) = 0x103;
-
-  // status |= ly68_driver_write(
-  //   (ly68_address) { .full = 100U },
-  //   m_data,
-  //   sizeof(m_data)
-  // );
-  // status |= ly68_driver_read(
-  //   (ly68_address) { .full = 100U },
-  //   m_received_data,
-  //   sizeof(m_received_data)
-  // );
-
-
-
-
-  // status |= ly68_driver_start_intermittent_write(
-  //   (ly68_address) { .full = 100U }
-  // );
-
-  // status |= ly68_driver_intermittent_write(m_data, sizeof(m_data));
-
-  // ly68_driver_stop_intermittent_write();
-
-  // status |= ly68_driver_read(
-  //   (ly68_address) { .full = 100U },
-  //   m_received_data,
-  //   sizeof(m_received_data)
-  // );
-
-  status |= ly68_driver_start_intermittent_write(
-    (ly68_address) { .full = 0U }
-  );
-
-  for (
-    ly68_address addr = { 0 };
-    addr.full <= LY68_LAST_ADDRESS;
-    addr.full += 1024U
-  )
-  {
-    status |= ly68_driver_intermittent_write(m_data, sizeof(m_data));
-  }
-
-  ly68_driver_stop_intermittent_write();
-
-  for (
-    ly68_address addr = { 0 };
-    addr.full <= LY68_LAST_ADDRESS;
-    addr.full += 1024U
-  )
-  {
-    status |= ly68_driver_read(
-      addr,
-      m_received_data,
-      sizeof(m_received_data)
-    );
-
-    if (memcmp(m_received_data, m_data, sizeof(m_received_data)) != 0)
-      Error_Handler();
-  }
-
-  if (status)
-    __asm("nop");
-  if (id.eid[0] == 1)
-    __asm("nop");
 
   /* USER CODE END 2 */
 
@@ -285,8 +155,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -344,6 +214,39 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
 
 }
 
