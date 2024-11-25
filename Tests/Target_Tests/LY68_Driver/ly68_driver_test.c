@@ -86,6 +86,7 @@ TEST(ly68_driver_test, read_id_is_ok)
 
   TEST_ASSERT_EQUAL(LY68_OK, status);
   TEST_ASSERT_EQUAL(LY68_MF_ID, id.mf_id);
+  TEST_ASSERT_EQUAL(LY68_KGD_PASS, id.kgd);
 }
 
 TEST(ly68_driver_test, write_read_is_ok)

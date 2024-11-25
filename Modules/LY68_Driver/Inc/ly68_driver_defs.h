@@ -24,7 +24,9 @@ enum
   LY68_TIMEOUT_VALUE = 0x64U,
   LY68_LAST_ADDRESS = 0x7FFFFFU,
   LY68_MF_ID = 0xdU,
-  LY68_PAGES_AMOUNT = 0x2000U
+  LY68_PAGES_AMOUNT = 0x2000U,
+  LY68_KGD_PASS = 0x5dU,
+  LY68_MAX_FREQUENCY = 0x1F78A40U // Frequency of read (datasheet pg. 19)
 };
 
 typedef struct {

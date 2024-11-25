@@ -65,6 +65,8 @@ void Error_Handler(void);
 #define LY68_MISO_GPIO_Port GPIOA
 #define LY68_MOSI_Pin GPIO_PIN_7
 #define LY68_MOSI_GPIO_Port GPIOA
+#define Debug_Output_Pin GPIO_PIN_9
+#define Debug_Output_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
